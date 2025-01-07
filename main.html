@@ -1,0 +1,702 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+   <title>烏拉抽賞模擬器</title>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <script>
+       window.prizeInfo = {
+            A: { name: '大獎', img: '', subtypes: { '1': { name: 'ジャンプ', img: 'https://i.imgur.com/uoLQPi2.jpeg' }, '2': { name: '腕組み', img: 'https://i.imgur.com/gIK3zvC.jpeg' } } },
+            B: { name: '二等獎', img: '', subtypes: { '1': { name: 'ウラララ', img: 'https://i.imgur.com/tumsKr1.jpeg' }, '2': { name: '垂れ耳', img: 'https://i.imgur.com/uCLob44.jpeg' } } },
+            C: { name: '三等獎', img: '', subtypes: { '1': { name: '蔦', img: 'https://i.imgur.com/hpT30K9.jpeg' }, '2': { name: '罠', img: 'https://i.imgur.com/ZEKGtw8.jpeg' } } },
+            D: { name: '四等獎', img: '', subtypes: { '1': { name: 'カヌレ', img: 'https://i.imgur.com/ZyEZTPg.jpeg' }, '2': { name: 'どんぐりDJ', img: 'https://i.imgur.com/DK90blp.jpeg' }, '3': { name: 'ハサミ', img: 'https://i.imgur.com/j8vTrBg.jpeg' }, '4': { name: 'ピザまん', img: 'https://i.imgur.com/GmA3k3c.jpeg' } } },
+            E: { name: '安慰獎', img: '', subtypes: { '1': { name: 'ヤハ', img: 'https://i.imgur.com/LNbTbRX.jpeg' }, '2': { name: 'ハァ！？', img: 'https://i.imgur.com/XtB84Sn.jpeg' }, '3': { name: 'ぐ〜', img: 'https://i.imgur.com/ZWEO3Wg.jpeg' }, '4': { name: 'フーッ...', img: 'https://i.imgur.com/B25kELr.jpeg' }, '5': { name: 'トンカチ', img: 'https://i.imgur.com/K0UIh6x.jpeg' }, '6': { name: 'ほかッ...', img: 'https://i.imgur.com/YvU5t1c.jpeg' } } }
+        };
+       
+       // 初始化統計
+       if (!localStorage.getItem('gachaStats')) {
+           localStorage.setItem('gachaStats', JSON.stringify({
+               total: 0,
+               prizes: {}
+           }));
+       }
+   </script>
+   <style>
+       * {
+           margin: 0;
+           padding: 0;
+           box-sizing: border-box;
+       }
+
+       body {
+           font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
+           background-color: #FBF8F1;
+           overflow-y: auto;
+           color: #333;
+           line-height: 1.6;
+       }
+
+       video {
+            position: fixed;
+            right: 0;
+            bottom: 0;
+            min-width: 100%;
+            min-height: 100%;
+            width: 100vw;
+            height: 100vh;
+            object-fit: cover; /* 讓影片保持比例填滿 */
+            z-index: -1;
+        }
+
+       .main-container {
+           max-width: 1000px;
+           margin: 0 auto;
+           padding: 20px;
+       }
+
+       .header {
+           background-color: #e06969;
+           padding: 20px 0;
+           text-align: center;
+           border-bottom: 2px solid #f0f0f0;
+       }
+
+       .header-title {
+           margin-bottom: 10px;
+       }
+
+       .header-title .en {
+           font-size: 24px;
+           font-weight: bold;
+           color: #333;
+           margin-bottom: 5px;
+       }
+
+       .prize-section {
+           background: white;
+           border-radius: 10px;
+           padding: 20px;
+           margin: 20px 0;
+           box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+       }
+
+       .prize-header {
+           display: flex;
+           justify-content: space-between;
+           align-items: center;
+           margin-bottom: 15px;
+           padding-bottom: 15px;
+           border-bottom: 1px solid #e06969;
+       }
+
+       .prize-label {
+           display: flex;
+           align-items: center;
+       }
+
+       .prize-label .value {
+           font-size: 24px;
+           font-weight: bold;
+           margin-right: 5px;
+       }
+
+       .prize-label .suffix {
+           font-size: 18px;
+       }
+
+       .prize-probability {
+           text-align: right;
+       }
+
+       .prize-probability .label {
+           font-size: 12px;
+           color: #666;
+       }
+
+       .prize-probability .value {
+           font-size: 18px;
+           font-weight: bold;
+           color: #333;
+       }
+
+       .prize-name {
+           font-size: 20px;
+           font-weight: bold;
+           margin-bottom: 10px;
+       }
+
+       .prize-description {
+           font-size: 14px;
+           color: #666;
+           margin-bottom: 20px;
+       }
+
+       .prize-items {
+           display: grid;
+           grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+           gap: 20px;
+       }
+
+       .prize-item {
+           background: white;
+           border-radius: 8px;
+           padding: 10px;
+           text-align: center;
+           transition: transform 0.3s ease;
+       }
+
+       .prize-item:hover {
+           transform: translateY(-5px);
+       }
+
+       .prize-item img {
+           width: 100%;
+           height: 200px;
+           object-fit: cover;
+           border-radius: 4px;
+           margin-bottom: 10px;
+       }
+
+       .prize-item-name {
+           font-size: 14px;
+           font-weight: bold;
+           margin: 10px 0;
+       }
+
+       .draw-section {
+           text-align: center;
+           margin: 40px 0;
+           padding: 20px;
+           background: white;
+           border-radius: 10px;
+           box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+       }
+
+       .draw-buttons {
+           display: flex;
+           justify-content: center;
+           gap: 10px;
+           flex-wrap: wrap;
+           margin: 20px 0;
+       }
+
+       .draw-button {
+           padding: 15px 30px;
+           font-size: 16px;
+           background-color: #FF6B6B;
+           color: white;
+           border: none;
+           border-radius: 25px;
+           cursor: pointer;
+           transition: background-color 0.3s;
+           min-width: 150px;
+       }
+
+       .draw-button:hover {
+           background-color: #FF5252;
+       }
+
+       .reset-button {
+           padding: 10px 20px;
+           font-size: 14px;
+           background-color: #666;
+           color: white;
+           border: none;
+           border-radius: 20px;
+           cursor: pointer;
+           margin: 10px;
+       }
+
+       .results-container {
+           display: grid;
+           grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+           gap: 20px;
+           margin-top: 30px;
+       }
+
+       .result-card {
+           background: white;
+           border-radius: 8px;
+           padding: 10px;
+           text-align: center;
+           box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+           transition: transform 0.3s ease;
+       }
+
+       .result-card:hover {
+           transform: translateY(-5px);
+       }
+
+       .result-card img {
+           width: 100%;
+           height: 160px;
+           object-fit: cover;
+           border-radius: 4px;
+           margin-bottom: 10px;
+       }
+
+       .result-rarity {
+           font-size: 14px;
+           color: #FF6B6B;
+           font-weight: bold;
+           margin: 5px 0;
+       }
+
+       .stats-section {
+           background: white;
+           border-radius: 10px;
+           padding: 20px;
+           margin: 20px 0;
+           box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+       }
+
+       .stats-section h3 {
+           font-size: 20px;
+           margin-bottom: 15px;
+       }
+
+       .stats-grid {
+           display: grid;
+           grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+           gap: 15px;
+       }
+
+       .stat-item {
+           display: flex;
+           align-items: center;
+           padding: 10px;
+           border: 1px solid #eee;
+           border-radius: 8px;
+       }
+
+       .stat-item img {
+           width: 60px;
+           height: 60px;
+           object-fit: cover;
+           border-radius: 4px;
+           margin-right: 10px;
+       }
+
+       .stat-info {
+           flex: 1;
+       }
+
+       .stat-name {
+           font-size: 14px;
+           font-weight: bold;
+       }
+
+       .stat-count {
+           color: #FF6B6B;
+           font-weight: bold;
+       }
+
+       .stat-percentage {
+           font-size: 12px;
+           color: #666;
+       }
+
+       @media (max-width: 768px) {
+           .prize-items {
+               grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+           }
+
+           .draw-buttons {
+               flex-direction: column;
+               align-items: center;
+           }
+
+           .draw-button {
+               width: 80%;
+           }
+
+           .results-container {
+               grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+           }
+       }
+   </style>
+</head>
+<body>
+    <!-- 背景影片 -->
+    <video id="v1" autoplay muted loop>
+        <!-- 建議使用線上影片連結 -->
+        <source src="https://github.com/NLNLfun/chikawa_draw/raw/refs/heads/main/1695795531010.mp4" type="video/mp4"  />
+        您的瀏覽器不支援影片播放。
+    </video>
+
+    <audio id="background-music" autoplay loop>
+        <source src="https://github.com/NLNLfun/chikawa_draw/raw/refs/heads/main/qb9df-nrzuk.mp3" type="audio/mp3">
+        您的瀏覽器不支援音樂播放。
+    </audio>
+
+   <header class="header">
+       <div class="header-title">
+           <div class="en">烏拉抽賞模擬器</div>
+       </div>
+   </header>
+
+   <main class="main-container">
+       <section class="draw-section">
+           <div class="draw-buttons">
+               <button class="draw-button" onclick="draw(1)">1抽</button>
+               <button class="draw-button" onclick="draw(3)">3抽</button>
+               <button class="draw-button" onclick="draw(5)">5抽</button>
+               <button class="draw-button" onclick="draw(10)">10抽</button>
+               <button class="reset-button" onclick="resetStats()">統計重置</button>
+           </div>
+           <div class="results-container" id="results"></div>
+           <div id="stats"></div>
+       </section>
+
+       
+       <section class="prize-section">
+           <div class="prize-header">
+               <div class="prize-label">
+                   <div class="value">A</div>
+                   <div class="suffix">賞</div>
+               </div>
+               <div class="prize-probability">
+                   <div class="label">当選確率</div>
+                   <div class="value">2.0%</div>
+               </div>
+           </div>
+
+           <div class="prize-name">超 BIG ぬいぐるみ</div>
+           <div class="prize-description">＜素材＞ポリエステル、ポリウレタン　＜サイズ＞約H650～670×W470×D270mm</div>
+
+           <div class="prize-items">
+               
+               <div class="prize-item">
+                   <img src="https://i.imgur.com/uoLQPi2.jpeg" alt="腕組み">
+                   <div class="prize-item-name">腕組み</div>
+               </div>
+
+               <div class="prize-item">
+                <img src="https://i.imgur.com/gIK3zvC.jpeg" alt="ジャンプ">
+                <div class="prize-item-name">ジャンプ</div>
+            </div>
+               
+           </div>
+       </section>
+       
+       <section class="prize-section">
+           <div class="prize-header">
+               <div class="prize-label">
+                   <div class="value">B</div>
+                   <div class="suffix">賞</div>
+               </div>
+               <div class="prize-probability">
+                   <div class="label">当選確率</div>
+                   <div class="value">4.0%</div>
+               </div>
+           </div>
+
+           <div class="prize-name">フェイスクッション </div>
+           <div class="prize-description">＜素材＞側地：ポリエステル95%、ポリウレタン5%　中材：ポリエステル100%、PE（※PEはウラララのみ）　＜サイズ＞約H300～430×W400～580×D110mm</div>
+
+           <div class="prize-items">
+               
+               <div class="prize-item">
+                   <img src="https://i.imgur.com/tumsKr1.jpeg" alt="ウラララ">
+                   <div class="prize-item-name">ウラララ</div>
+               </div>
+
+               <div class="prize-item">
+                    <img src="https://i.imgur.com/uCLob44.jpeg" alt="垂れ耳">
+                    <div class="prize-item-name">垂れ耳</div>
+                </div>
+               
+           </div>
+       </section>
+       
+       <section class="prize-section">
+           <div class="prize-header">
+               <div class="prize-label">
+                   <div class="value">C</div>
+                   <div class="suffix">賞</div>
+               </div>
+               <div class="prize-probability">
+                   <div class="label">当選確率</div>
+                   <div class="value">6.0%</div>
+               </div>
+           </div>
+
+           <div class="prize-name">ぬいぐるみポシェット</div>
+           <div class="prize-description">＜素材＞本体：ポリエステル100%、POM、ナイロン　ストラップ：綿100%　＜サイズ＞約H270～300×W180～210×D70mm（本体）</div>
+
+           <div class="prize-items">
+               
+               
+               <div class="prize-item">
+                   <img src="https://i.imgur.com/hpT30K9.jpeg" alt="罠">
+                   <div class="prize-item-name">罠</div>
+               </div>
+               
+               <div class="prize-item">
+                   <img src="https://i.imgur.com/ZEKGtw8.jpeg" alt="蔦!!">
+                   <div class="prize-item-name">蔦!!</div>
+               </div>
+               
+               
+           </div>
+       </section>
+       
+       <section class="prize-section">
+           <div class="prize-header">
+               <div class="prize-label">
+                   <div class="value">D</div>
+                   <div class="suffix">賞</div>
+               </div>
+               <div class="prize-probability">
+                   <div class="label">当選確率</div>
+                   <div class="value">16.0%</div>
+               </div>
+           </div>
+
+           <div class="prize-name">マスコット</div>
+           <div class="prize-description">＜素材＞本体：ポリエステル、ポリウレタン、ナイロン　ボールチェーン：鉄　＜サイズ＞約H140～150×W80～100×D45～100mm</div>
+
+           <div class="prize-items">
+               
+               <div class="prize-item">
+                   <img src="https://i.imgur.com/ZyEZTPg.jpeg" alt="カヌレ">
+                   <div class="prize-item-name">カヌレ</div>
+               </div>
+               
+               <div class="prize-item">
+                    <img src="https://i.imgur.com/DK90blp.jpeg" alt="どんぐりDJ">
+                    <div class="prize-item-name">どんぐりDJ</div>
+                </div>
+                <div class="prize-item">
+                    <img src="https://i.imgur.com/j8vTrBg.jpeg" alt="ハサミ">
+                    <div class="prize-item-name">ハサミ</div>
+                </div>
+                <div class="prize-item">
+                    <img src="https://i.imgur.com/GmA3k3c.jpeg" alt="ピザまん">
+                    <div class="prize-item-name">ピザまん</div>
+                </div>
+
+
+           </div>
+       </section>
+       
+       <section class="prize-section">
+           <div class="prize-header">
+               <div class="prize-label">
+                   <div class="value">E</div>
+                   <div class="suffix">賞</div>
+               </div>
+               <div class="prize-probability">
+                   <div class="label">当選確率</div>
+                   <div class="value">72.0%</div>
+               </div>
+           </div>
+
+           <div class="prize-name">ぬいぐるみバッジ</div>
+           <div class="prize-description">＜素材＞本体：ポリエステル、ポリウレタン　安全ピン：PS、鉄　＜サイズ＞約H100～145×W70～105×D25mm</div>
+
+           <div class="prize-items">
+               
+               
+               <div class="prize-item">
+                   <img src="https://i.imgur.com/LNbTbRX.jpeg" alt="ヤハ">
+                   <div class="prize-item-name">ヤハ</div>
+               </div>
+               
+               <div class="prize-item">
+                   <img src="https://i.imgur.com/XtB84Sn.jpeg" alt="ハァ！？">
+                   <div class="prize-item-name">ハァ！？</div>
+               </div>
+               
+               <div class="prize-item">
+                   <img src="https://i.imgur.com/ZWEO3Wg.jpeg" alt="ぐ〜">
+                   <div class="prize-item-name">ぐ〜</div>
+               </div>
+               
+               <div class="prize-item">
+                   <img src="https://i.imgur.com/B25kELr.jpeg" alt="フーッ...">
+                   <div class="prize-item-name">フーッ...</div>
+               </div>
+               
+               <div class="prize-item">
+                   <img src="https://i.imgur.com/K0UIh6x.jpeg" alt="トンカチ">
+                   <div class="prize-item-name">トンカチ</div>
+               </div>
+               
+               <div class="prize-item">
+                   <img src="https://i.imgur.com/YvU5t1c.jpeg" alt="ほかッ...">
+                   <div class="prize-item-name">ほかッ...</div>
+               </div>
+               
+               
+           </div>
+       </section>
+       
+   </main>
+
+   <script>
+
+        window.onload = function() {
+            const music = document.getElementById("background-music");
+            music.volume = 0.5; 
+            music.play().catch(() => console.log("音樂未播放，需要使用者點擊觸發"));
+        };
+        
+        document.getElementById('background-music').volume = 0.5;
+
+       function getStats() {
+           const stats = JSON.parse(localStorage.getItem('gachaStats') || '{"total":0,"prizes":{}}');
+           return stats;
+       }
+
+       function updateStats(results) {
+           const stats = getStats();
+           stats.total += results.length;
+           
+           results.forEach(result => {
+               const prizeKey = `${result.prize}_${result.subtype || 'default'}`;
+               stats.prizes[prizeKey] = (stats.prizes[prizeKey] || 0) + 1;
+           });
+           
+           localStorage.setItem('gachaStats', JSON.stringify(stats));
+           displayStats();
+       }
+
+       function displayStats() {
+   const stats = getStats();
+   
+   // 將獎項資料整理成陣列並排序
+   const prizeOrder = ['A', 'B', 'C', 'D', 'E'];
+   let allItems = [];
+   
+   Object.entries(stats.prizes).forEach(([key, count]) => {
+       const [prize, subtype] = key.split('_');
+       const prizeInfo = getPrizeInfo(prize, subtype);
+       allItems.push({
+           prize,
+           subtype,
+           count,
+           name: prizeInfo.name,
+           img: prizeInfo.img,
+           percentage: ((count/stats.total)*100).toFixed(1)
+       });
+   });
+   
+   // 根據獎項順序排序
+   allItems.sort((a, b) => {
+       return prizeOrder.indexOf(a.prize) - prizeOrder.indexOf(b.prize);
+   });
+
+   const statsHtml = `
+       <div class="stats-section">
+           <h3>統計情報</h3>
+           <p>總抽選數量: ${stats.total}次</p>
+           <div class="stats-grid">
+               ${allItems.map(item => `
+                   <div class="stat-item">
+                       <img src="${item.img}" alt="${item.name}">
+                       <div class="stat-info">
+                           <div class="stat-name">${item.prize}賞 - ${item.name}</div>
+                           <div class="stat-count">${item.count}次</div>
+                           <div class="stat-percentage">${item.percentage}%</div>
+                       </div>
+                   </div>
+               `).join('')}
+           </div>
+       </div>
+   `;
+   
+   document.getElementById('stats').innerHTML = statsHtml;
+}
+
+       function getPrizeInfo(prize, subtype) {
+           const prizeData = window.prizeInfo[prize];
+           if (subtype === 'default') {
+               return {
+                   name: prizeData.name,
+                   img: prizeData.img
+               };
+           }
+           return {
+               name: prizeData.subtypes[subtype].name,
+               img: prizeData.subtypes[subtype].img
+           };
+       }
+
+       function resetStats() {
+           localStorage.removeItem('gachaStats');
+           displayStats();
+       }
+
+
+       function draw(times) {
+        const prizePool = [
+            { prize: 'A', subtype: '1', name: 'ジャンプ', img: 'https://i.imgur.com/uoLQPi2.jpeg' },
+            { prize: 'A', subtype: '2', name: '腕組み', img: 'https://i.imgur.com/gIK3zvC.jpeg' },
+            { prize: 'B', subtype: '1', name: 'ウラララ', img: 'https://i.imgur.com/tumsKr1.jpeg' },
+            { prize: 'B', subtype: '2', name: '垂れ耳', img: 'https://i.imgur.com/uCLob44.jpeg' },
+            { prize: 'C', subtype: '1', name: '蔦', img: 'https://i.imgur.com/hpT30K9.jpeg' },
+            { prize: 'C', subtype: '2', name: '罠', img: 'https://i.imgur.com/ZEKGtw8.jpeg' },
+            { prize: 'D', subtype: '1', name: 'カヌレ', img: 'https://i.imgur.com/ZyEZTPg.jpeg' },
+            { prize: 'D', subtype: '2', name: 'どんぐりDJ', img: 'https://i.imgur.com/DK90blp.jpeg' },
+            { prize: 'D', subtype: '3', name: 'ハサミ', img: 'https://i.imgur.com/j8vTrBg.jpeg' },
+            { prize: 'D', subtype: '4', name: 'ピザまん', img: 'https://i.imgur.com/GmA3k3c.jpeg' },
+            { prize: 'E', subtype: '1', name: 'ヤハ', img: 'https://i.imgur.com/LNbTbRX.jpeg' },
+            { prize: 'E', subtype: '2', name: 'ハァ！？', img: 'https://i.imgur.com/XtB84Sn.jpeg' },
+            { prize: 'E', subtype: '3', name: 'ぐ〜', img: 'https://i.imgur.com/ZWEO3Wg.jpeg' },
+            { prize: 'E', subtype: '4', name: 'フーッ...', img: 'https://i.imgur.com/B25kELr.jpeg' },
+            { prize: 'E', subtype: '5', name: 'トンカチ', img: 'https://i.imgur.com/K0UIh6x.jpeg' },
+            { prize: 'E', subtype: '6', name: 'ほかッ...', img: 'https://i.imgur.com/YvU5t1c.jpeg' }
+        ];
+
+        const probabilities = [
+            { range: 2, prize: 'A' },      
+            { range: 6, prize: 'B' },      
+            { range: 12, prize: 'C' },     
+            { range: 28, prize: 'D' },     
+            { range: 100, prize: 'E' }     
+        ];
+
+        const results = [];
+        for (let i = 0; i < times; i++) {
+            const randomChance = Math.random() * 100; 
+            let selectedPrize = null;
+
+            for (let prob of probabilities) {
+                if (randomChance < prob.range) {
+                    selectedPrize = prob.prize;
+                    break;
+                }
+            }
+
+            const prizeOptions = prizePool.filter(p => p.prize === selectedPrize);
+            const randomPrize = prizeOptions[Math.floor(Math.random() * prizeOptions.length)];
+            results.push(randomPrize);
+        }
+
+        const resultsContainer = document.getElementById('results');
+        resultsContainer.innerHTML = '';
+
+        results.forEach(result => {
+            const card = document.createElement('div');
+            card.className = 'result-card';
+
+            card.innerHTML = `
+                <img src="${result.img}" alt="${result.name}">
+                <div class="result-rarity">${result.prize}賞</div>
+                <div class="result-name">${result.name}</div>
+            `;
+
+            resultsContainer.appendChild(card);
+        });
+
+        updateStats(results);
+    }
+
+
+       // 初始顯示統計
+       displayStats();
+   </script>
+</body>
+</html>
