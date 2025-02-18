@@ -1,0 +1,47 @@
+body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    background-color: #f4f4f4;
+}
+
+h1 {
+    color: #333;
+}
+
+.card-container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);  /* 3 列 */
+    grid-template-rows: repeat(2, auto);  /* 2 行 */
+    grid-gap: 20px;  /* 卡片之間的間隔 */
+    justify-content: center;  /* 讓整個容器在頁面中水平居中 */
+    align-items: center;  /* 垂直置中 */
+    margin: 0 auto;  /* 使整個容器在畫面中置中 */
+    max-width: 1000px;  /* 限制容器寬度 */
+}
+
+.card {
+    width: auto;
+    border: 2px solid #333;
+    border-radius: 10px;
+    padding: 0;  /* 去掉內邊距，讓卡片邊界與表格靠得更近 */
+    background-color: #fff;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.card table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.card table, .card td {
+    border: 1px solid #333;
+    padding: 5px;
+    text-align: center;
+    table-layout: fixed;  /* 固定表格佈局 */
+}
+
+.card td {
+    font-size: 16px;
+    width: 40px;  /* 每個格子固定寬度 */
+    height: 40px;  /* 每個格子固定高度，讓格子變得更方形 */
+}

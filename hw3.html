@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>O-O Practice</title>
+</head>
+<body>
+    <script>
+        // JavaScript 程式碼
+        class Shape {
+          constructor(length) {
+            this.length = length;
+          }
+
+          calcPerimeter() {
+            return this.length * 4;
+          }
+        }
+
+        class Square extends Shape {
+          constructor(side) {
+            super(side);
+          }
+
+          calcPerimeter() {
+            return this.length * 4;
+          }
+
+          calcArea() {
+            return this.length * this.length;
+          }
+        }
+
+        class Triangle extends Shape {
+          constructor(side) {
+            super(side);
+          }
+
+          calcPerimeter() {
+            return this.length * 3;
+          }
+
+          calcArea() {
+            return (Math.sqrt(3) / 4) * this.length * this.length;
+          }
+        }
+
+        let triangle = new Triangle(5);
+        let square = new Square(10);
+
+        console.log("The perimeter of triangle is:", triangle.calcPerimeter());
+        console.log("The area of triangle is:", triangle.calcArea());
+
+        console.log("The perimeter of square is:", square.calcPerimeter());
+        console.log("The area of square is:", square.calcArea());
+    </script>
+</body>
+</html>

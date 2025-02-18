@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>鍵盤控制小遊戲</title>
+  <style>
+    body { margin: 0; overflow: hidden; }
+    #gameCanvas { background-color: #f0f0f0; display: block; }
+  </style>
+</head>
+<body>
+  <canvas id="gameCanvas"></canvas>
+
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    canvas.width = 800;
+    canvas.height = 600;
+
+    let player = {
+      x: canvas.width / 2,
+      y: canvas.height / 2,
+      size: 50,
+      speed: 5
+    };
+
+    // 更新遊戲畫面
+    function update() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height); // 清除畫布
+
+      // 畫出玩家方塊
+      ctx.fillStyle = 'blue';
+      ctx.fillRect(player.x, player.y, player.size, player.size);
+
+      requestAnimationFrame(update); // 不斷重繪
+    }
+
+    // 監聽鍵盤事件
+    window.addEventListener('keydown', (e) => {
+      switch (e.key) {
+        case 'ArrowUp': // 上鍵
+          if (player.y > 0) player.y -= player.speed;
+          break;
+        case 'ArrowDown': // 下鍵
+          if (player.y < canvas.height - player.size) player.y += player.speed;
+          break;
+        case 'ArrowLeft': // 左鍵
+          if (player.x > 0) player.x -= player.speed;
+          break;
+        case 'ArrowRight': // 右鍵
+          if (player.x < canvas.width - player.size) player.x += player.speed;
+          break;
+      }
+    });
+
+    // 開始遊戲
+    update();
+  </script>
+</body>
+</html>
